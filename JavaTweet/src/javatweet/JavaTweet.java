@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import twitter4j.GeoLocation;
 import twitter4j.Query;
 import static twitter4j.Query.POPULAR;
@@ -32,63 +33,25 @@ public class JavaTweet  {
     public static void main(String[] args) throws TwitterException, IOException {  
         ConnectDB con = new ConnectDB();
         FindTweets findTweets = new FindTweets();
+        String keyword = "game";
                        
         try {
-            con.drop();
-            con.createTable();
-            List <Status> tweets = findTweets.findByLoc();
-            for (Status s: tweets){
-                String tweet = s.getText();
-                List tags = getWords(tweet);
-                con.post(tweet,tags);
-                
-                System.out.println(s);
-                
-            }   
+            List <String> tweets = findTweets.findByLoc(keyword);
+            //con.drop();
+            //con.createTable();
+            con.post(tweets);
             
-        } 
+            NLP.init();
+            
+            for(String tweet : tweets) {
+                //System.out.println(tweet + " : " + NLP.findSentiment(tweet));        
+            }
+         } 
         catch (Exception ex) {
             Logger.getLogger(JavaTweet.class.getName()).log(Level.SEVERE, null, ex);
         }       
         
-    }
-           
-    public static List getWords(String tweet) throws Exception{
-        //String tweet = "Мой результат в мини-игре Пляжные фишки в Paradise Island 2: 156 #GameInsight #ParadiseIsland2";
-        String[] subStr;
-        //String[] tags = new String[100];
-        List <String> tags = new ArrayList();
-        //tags.set(0, "notag");
-        //int j = 0;
-        String delimeter = " "; // Разделитель
-        
-        try{
-            subStr = tweet.split(delimeter); // Разделения строки str с помощью метода split()
-            // Вывод результата на экран
-            for(int i = 0; i < subStr.length; i++) { 
-                //System.out.println(subStr[i]); 
-                char first = subStr[i].charAt(0);
-
-                if (first == '#'){
-                    //tags[j] = subStr[i];
-                   // j++;
-                    tags.add(subStr[i]);
-                }
-            }
-
-            //System.out.println("tags: \n"); 
-            //System.out.println(tags); 
-        }
-        catch (Exception e){
-           System.out.println(e);  
-        }
-        
-        if (tags.isEmpty()) {
-            tags.add("notag");
-        }
-        return tags;
     }       
-       
 }
     
 

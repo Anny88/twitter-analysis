@@ -53,7 +53,7 @@ public class ConnectDB {
          catch (Exception e){
              System.out.println(e);
          }
-         finally {System.out.println("Function complete");}
+         finally {System.out.println("Create table complete");}
      }
      
      public static void post(List <String> tweets) throws Exception{

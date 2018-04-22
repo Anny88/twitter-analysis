@@ -37,15 +37,13 @@ public class JavaTweet  {
                        
         try {
             List <String> tweets = findTweets.findByLoc(keyword);
-            //con.drop();
-            //con.createTable();
-            con.post(tweets);
+            con.drop();
+            con.createTable();
+            con.post(tweets);       
             
-            NLP.init();
-            
-            for(String tweet : tweets) {
-                //System.out.println(tweet + " : " + NLP.findSentiment(tweet));        
-            }
+            /*for(String tweet : tweets) {
+                System.out.println(tweet + " : " + NLP.findSentiment(tweet));        
+            }*/
          } 
         catch (Exception ex) {
             Logger.getLogger(JavaTweet.class.getName()).log(Level.SEVERE, null, ex);

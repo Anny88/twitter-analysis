@@ -3,11 +3,14 @@ package javatweet;
 import com.opencsv.CSVWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import twitter4j.GeoLocation;
 import twitter4j.Query;
 import static twitter4j.Query.RECENT;
@@ -21,18 +24,21 @@ import twitter4j.conf.ConfigurationBuilder;
 
 public class FindTweets {
     
-    public static List<String>  findByLoc(String keyword) throws TwitterException, IOException, Exception{
+    public static List<String>  findByLoc(String keyword, int MAX_QUERIES, int TWEETS_PER_QUERY) throws TwitterException, IOException, Exception{
         
         Twitter twitter = connectToTwitter();    
-                
+        
+        ConnectDB conDB = new ConnectDB();
+        Connection con = conDB.getConnection();
+        
         double lat = 51.509865;
         double lon = -0.118092;
-        double res = 20;
+        double res = 30;
         String resUnit = "mi";  
         List<String> lines = new ArrayList<>();
         
-        final int MAX_QUERIES = 2;
-        final int TWEETS_PER_QUERY = 100;
+        //final int MAX_QUERIES = 4;
+        //final int TWEETS_PER_QUERY = 100;
         int	totalTweets = 0;
         long maxID = -1;
         Map<String, RateLimitStatus> rateLimitStatus = twitter.getRateLimitStatus("search");
@@ -46,7 +52,7 @@ public class FindTweets {
         try{
         
             for (int queryNumber = 0; queryNumber < MAX_QUERIES; queryNumber++) {
-                System.out.printf("\n\n!!! Starting loop %d\n\n", queryNumber);
+                System.out.printf("\n! Starting loop %d\n", queryNumber);
                 if (searchTweetsRateLimit.getRemaining() == 0) {
                     System.out.printf("!!! Sleeping for %d seconds due to rate limits\n", searchTweetsRateLimit.getSecondsUntilReset());
                     Thread.sleep((searchTweetsRateLimit.getSecondsUntilReset()+2) * 1000l);
@@ -69,10 +75,24 @@ public class FindTweets {
 
                 for (Status s: result.getTweets()) {
                     totalTweets++;
+                    String tweetReady = null;
                     if (maxID == -1 || s.getId() < maxID) {
                         maxID = s.getId();
                     }
+                    if (!s.isRetweet()){
+                       tweetReady = cleanText(s.getText());
+                    }
+                   
+                    if (s.isRetweet()){
+                       tweetReady = "RT " + cleanText(s.getRetweetedStatus().getText()); 
+                    }
+                    
+                    
+                    PreparedStatement posted = con.prepareStatement(insert(tweetReady));
+                    posted.executeUpdate();
+                    
                     lines.add( cleanText(s.getText()));
+                    //lines.add(s.getText());
                 }
                 searchTweetsRateLimit = result.getRateLimitStatus();
             }
@@ -87,12 +107,65 @@ public class FindTweets {
       
     }
     
+    public static String insert(String tweetReady) {
+       int score = 0;
+       String insert = null, values = null;
+        try{
+            List <String> tags = getWords(tweetReady);
+            insert = "INSERT INTO tweets(maintweet,score";
+            values = " VALUES ('"+tweetReady+"', '"+score+"'";
+            for (int j = 0; j<tags.size(); j++){
+               String num = Integer.toString(j+1);
+               insert += ", tag" + num;
+               values += ", '"+tags.get(j)+"' ";
+            }
+
+            insert += ")";
+            values += ")";
+           
+        }
+        catch (Exception e){
+            System.out.println(e);
+            System.out.println(tweetReady);
+        }
+        return (insert+values);
+    } 
+    
+    
+  
+    
+    public static List getWords(String tweet) throws Exception{
+        String tweet2 =  tweet.replaceAll("[^a-zA-Z0-9#@_]+"," ");
+        String[] subStr;
+        List <String> tags = new ArrayList();
+        String delimeter = " "; // Разделитель
+        if (tweet2.length() > 0){
+            try{
+                subStr = tweet2.split(delimeter); 
+                for(int i = 0; i < subStr.length; i++) { 
+                    char first = subStr[i].charAt(0);
+                    if (first == '#'){
+                        tags.add(subStr[i]);
+                    }
+                }
+            }
+            catch (Exception e){
+               System.out.println("Error in getWords" + e);  
+            }
+        }
+        if (tags.isEmpty()) {
+            //tags.add("notag");
+        }
+        return tags;
+    }
+    
+    
     
      public static String cleanText(String text) {
-        text = text.replace("\n", "\\n");
-        text = text.replace("\t", "\\t");
-        text = text.replace("'", "");
-
+        //text = text.replace("\n", "\\n");
+        //text = text.replace("\t", "\\t");
+         text = text.replace("'", "\\'");
+        //text = text.replaceAll("[^a-zA-Z0-9#@]+","");
         return text;
      }
     
@@ -109,7 +182,9 @@ public class FindTweets {
                     .setOAuthConsumerKey(consumerKey)
                     .setOAuthConsumerSecret(consumerSecret)
                     .setOAuthAccessToken(accessToken)
+                    .setTweetModeExtended(true)
                     .setOAuthAccessTokenSecret(accessTokenSecret);
+                    //.setTweetModeExtended(true);
             TwitterFactory factory = new TwitterFactory(cb.build());
             Twitter twitter = factory.getInstance();
             return twitter;

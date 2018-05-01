@@ -22,7 +22,7 @@ import static twitter4j.Query.RECENT;
 import twitter4j.QueryResult;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
-import twitter4j.StatusListener;
+
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
@@ -33,13 +33,20 @@ public class JavaTweet  {
     public static void main(String[] args) throws TwitterException, IOException {  
         ConnectDB con = new ConnectDB();
         FindTweets findTweets = new FindTweets();
-        String keyword = "game";
-                       
+        String keyword = "#game";
+        int MAX_QUERIES = 1;
+        final int TWEETS_PER_QUERY = 10;
+        List<String> Baum = new ArrayList();
+        Baum.add(keyword.toLowerCase());
+               
         try {
-            List <String> tweets = findTweets.findByLoc(keyword);
             con.drop();
             con.createTable();
-            con.post(tweets);       
+            //List <String> tweets = findTweets.findByLoc(keyword, MAX_QUERIES,TWEETS_PER_QUERY);
+            findTweets.findByLoc(keyword, MAX_QUERIES,TWEETS_PER_QUERY);
+            
+           //con.post(tweets);
+            con.getRelatedTags(Baum, 15, keyword, MAX_QUERIES*TWEETS_PER_QUERY , null, 0);
             
             /*for(String tweet : tweets) {
                 System.out.println(tweet + " : " + NLP.findSentiment(tweet));        

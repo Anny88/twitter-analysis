@@ -33,9 +33,9 @@ public class JavaTweet  {
     public static void main(String[] args) throws TwitterException, IOException {  
         ConnectDB con = new ConnectDB();
         FindTweets findTweets = new FindTweets();
-        String keyword = "#game";
-        int MAX_QUERIES = 1;
-        final int TWEETS_PER_QUERY = 10;
+        String keyword = "#usa";
+        int MAX_QUERIES = 10;
+        final int TWEETS_PER_QUERY = 100;
         List<String> Baum = new ArrayList();
         Baum.add(keyword.toLowerCase());
                

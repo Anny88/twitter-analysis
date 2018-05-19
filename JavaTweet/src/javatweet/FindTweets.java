@@ -86,8 +86,6 @@ public class FindTweets {
                     if (s.isRetweet()){
                        tweetReady = "RT " + cleanText(s.getRetweetedStatus().getText()); 
                     }
-                    
-                    
                     PreparedStatement posted = con.prepareStatement(insert(tweetReady));
                     posted.executeUpdate();
                     
@@ -110,19 +108,24 @@ public class FindTweets {
     public static String insert(String tweetReady) {
        int score = 0;
        String insert = null, values = null;
+       int size = 0;
         try{
             List <String> tags = getWords(tweetReady);
             insert = "INSERT INTO tweets(maintweet,score";
             values = " VALUES ('"+tweetReady+"', '"+score+"'";
-            for (int j = 0; j<tags.size(); j++){
+            if (tags.size() > 15) {
+                size = 15;
+            }
+            else { 
+                size = tags.size();
+            }
+            for (int j = 0; j<size; j++){
                String num = Integer.toString(j+1);
                insert += ", tag" + num;
                values += ", '"+tags.get(j)+"' ";
             }
-
             insert += ")";
             values += ")";
-           
         }
         catch (Exception e){
             System.out.println(e);

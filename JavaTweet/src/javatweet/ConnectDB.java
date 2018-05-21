@@ -126,9 +126,9 @@ public class ConnectDB {
     
     
      
-     public static List<String> getRelatedTags(List<String> tree, int numberOfTags, String key, int amountOfTweets, String tagToSearch, int layer){
+     public static List<String> getRelatedTags(List<String> tree, int numberOfTags,  int amountOfTweets, String tagToSearch, int layer){
         System.out.println("Layer " + Integer.toString(layer));
-        System.out.println(tagToSearch+ "\n");
+        System.out.println("We search " + tagToSearch+ "\n");
         String[] popTags = new String[4];
         int[] popValues = new int[4];
         int count = 0;
@@ -136,15 +136,18 @@ public class ConnectDB {
         //List <String> tree = new ArrayList();
         System.out.println(tree);
         ResultSet rs = null;
+        tagToSearch = tagToSearch.toLowerCase();
+        
         try{
             rs = select(numberOfTags, tagToSearch);
-            //System.out.println(rs);
+            System.out.println("Tags : ");
             while (rs.next()) {
                 count++;
                 for (int j = 1; j <= numberOfTags; j++){
                     String tag = (rs.getString(j));
-                    //System.out.println(tag);
+                    
                     if (tag!= null){
+                        System.out.println(tag);
                         String tagLC = tag.toLowerCase();
                         //if (layer == 1) {System.out.println(tagLC);}
                         if (!tree.contains(tagLC)) {
@@ -176,6 +179,7 @@ public class ConnectDB {
                     Map.Entry<String, Integer> entry = itr.next();
                     if (entry.getValue()==maxValueInMap) {
                         popTags[k] = entry.getKey();
+                        System.out.println ("pop key " + entry.getKey()+ " +value " + entry.getValue());
                         popValues[k] =  entry.getValue();
                         tree.add(entry.getKey());
                         itr.remove();
@@ -194,7 +198,7 @@ public class ConnectDB {
         try{
             if (layer <2){
                 for (int m = 0; m <4 ; m++){
-                    getRelatedTags(tree, numberOfTags, key, amountOfTweets, popTags[m], layer);
+                    getRelatedTags(tree, numberOfTags, amountOfTweets, popTags[m], layer);
                 }    
             }
         }

@@ -86,9 +86,10 @@ public class FindTweets {
                     if (s.isRetweet()){
                        tweetReady = "RT " + cleanText(s.getRetweetedStatus().getText()); 
                     }
-                    PreparedStatement posted = con.prepareStatement(insert(tweetReady));
-                    posted.executeUpdate();
-                    
+                    if (tweetReady != null){
+                        PreparedStatement posted = con.prepareStatement(insert(tweetReady));
+                        posted.executeUpdate();
+                    }
                     lines.add( cleanText(s.getText()));
                     //lines.add(s.getText());
                 }
@@ -128,7 +129,7 @@ public class FindTweets {
             values += ")";
         }
         catch (Exception e){
-            System.out.println(e);
+            System.out.println("Error in insert : " + e);
             System.out.println(tweetReady);
         }
         return (insert+values);
@@ -138,37 +139,45 @@ public class FindTweets {
   
     
     public static List getWords(String tweet) throws Exception{
-        String tweet2 =  tweet.replaceAll("[^a-zA-Z0-9#@_]+"," ");
+        
         String[] subStr;
         List <String> tags = new ArrayList();
         String delimeter = " "; // Разделитель
-        if (tweet2.length() > 0){
+        
+        if (tweet.length() > 0){
             try{
+                String tweet2 =  tweet.replaceAll("[^a-zA-Z0-9#@_]+"," ");
                 subStr = tweet2.split(delimeter); 
                 for(int i = 0; i < subStr.length; i++) { 
                     char first = subStr[i].charAt(0);
                     if (first == '#'){
-                        tags.add(subStr[i]);
+                        tags.add(subStr[i].toLowerCase());
                     }
                 }
+                if (tags.isEmpty()) {
+                    tags.add("notag");
+                }
+                return tags;
             }
             catch (Exception e){
-               System.out.println("Error in getWords" + e);  
+               System.out.println("Error in getWords " + tags.get(0)+ " " + e);  
             }
         }
         if (tags.isEmpty()) {
-            //tags.add("notag");
-        }
+                    tags.add("notag");
+                }
         return tags;
+        
+        
     }
     
     
     
      public static String cleanText(String text) {
-        //text = text.replace("\n", "\\n");
-        //text = text.replace("\t", "\\t");
-         text = text.replace("'", "\\'");
-        //text = text.replaceAll("[^a-zA-Z0-9#@]+","");
+        text = text.replace("\n", "\\n");
+        text = text.replace("\t", "\\t");
+        text = text.replace("'", "\\'");
+        text = text.replaceAll("[^a-zA-Z0-9#@ ]+","");
         return text;
      }
     

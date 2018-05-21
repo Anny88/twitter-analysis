@@ -21,10 +21,13 @@ public class JavaTweet  {
         ConnectDB con = new ConnectDB();
         FindTweets findTweets = new FindTweets();
         String keyword = "#usa";
-        int MAX_QUERIES = 1;
-        final int TWEETS_PER_QUERY = 10;
+        int MAX_QUERIES = 10;
+        final int TWEETS_PER_QUERY = 100;
         List<String> Baum = new ArrayList();
         Baum.add(keyword.toLowerCase());
+        TreeNode Baum2 = null;
+        TreeNode BaumTree = new TreeNode (keyword.toLowerCase(), 100);
+        //BaumTree.parent = null;
                
         try {
             con.drop();
@@ -33,8 +36,9 @@ public class JavaTweet  {
             findTweets.findByLoc(keyword, MAX_QUERIES,TWEETS_PER_QUERY);
             
            //con.post(tweets);
-            con.getRelatedTags(Baum, 15,  MAX_QUERIES*TWEETS_PER_QUERY , keyword, 0);
-            
+            Baum2 = con.getRelatedTags(BaumTree, Baum, 15,  MAX_QUERIES*TWEETS_PER_QUERY , keyword, 0);
+            System.out.println ("BAUM : \n\n");
+            recursivePrint(Baum2);
             /*for(String tweet : tweets) {
                 System.out.println(tweet + " : " + NLP.findSentiment(tweet));        
             }*/
@@ -44,6 +48,18 @@ public class JavaTweet  {
         }       
         
     }       
+    private static void recursivePrint(TreeNode node){    
+        System.out.print (node.getTag()+ " "+ node.getValue()+ "  ");
+        List<TreeNode> children = node.getChildren(); 
+        //if (node.parent.getTag() != null){
+        System.out.println ("parent: " + node.getParent().getTag());
+        //}
+        TreeNode result = null;
+        
+        for (int i = 0; result == null && i < children.size(); i++) {         
+            recursivePrint(children.get(i));
+        }
+    }
 }
     
 

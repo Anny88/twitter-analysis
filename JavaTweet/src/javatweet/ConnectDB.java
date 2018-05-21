@@ -126,17 +126,19 @@ public class ConnectDB {
     
     
      
-     public static List<String> getRelatedTags(List<String> tree, int numberOfTags,  int amountOfTweets, String tagToSearch, int layer){
+     public static TreeNode getRelatedTags(TreeNode baum, List<String> tree, int numberOfTags,  int amountOfTweets, String tagToSearch, int layer){
         System.out.println("Layer " + Integer.toString(layer));
         System.out.println("We search " + tagToSearch+ "\n");
+        System.out.println(tree);
+        
         String[] popTags = new String[4];
         int[] popValues = new int[4];
         int count = 0;
         HashMap <String, Integer> tags = new HashMap<String, Integer>();
-        //List <String> tree = new ArrayList();
-        System.out.println(tree);
         ResultSet rs = null;
         tagToSearch = tagToSearch.toLowerCase();
+        
+            
         
         try{
             rs = select(numberOfTags, tagToSearch);
@@ -147,7 +149,7 @@ public class ConnectDB {
                     String tag = (rs.getString(j));
                     
                     if (tag!= null){
-                        System.out.println(tag);
+                        
                         String tagLC = tag.toLowerCase();
                         //if (layer == 1) {System.out.println(tagLC);}
                         if (!tree.contains(tagLC)) {
@@ -168,8 +170,7 @@ public class ConnectDB {
         } catch (Exception e){
             System.out.println("Exception in resultset: " + e);
         }
-            //System.out.println (tags);
-           
+                   
         try{    
             
             for (int k = 0; k <4; k++){
@@ -179,7 +180,6 @@ public class ConnectDB {
                     Map.Entry<String, Integer> entry = itr.next();
                     if (entry.getValue()==maxValueInMap) {
                         popTags[k] = entry.getKey();
-                        System.out.println ("pop key " + entry.getKey()+ " +value " + entry.getValue());
                         popValues[k] =  entry.getValue();
                         tree.add(entry.getKey());
                         itr.remove();
@@ -188,6 +188,10 @@ public class ConnectDB {
                 }
             tags.remove(popTags[k]);
             System.out.println("Tag " + (k+1) + ": " + popTags[k] + " with value " + (popValues[k]*100)/count+"%");
+            
+            //TreeNode tn = recursiveSearch (tagToSearch, baum);             
+            //tn.addChild(popTags[k], popValues[k]*100/count);
+            recursiveSearch (tagToSearch, baum).addChild(popTags[k], popValues[k]*100/count);
             }
             
         } catch (Exception e){
@@ -198,14 +202,14 @@ public class ConnectDB {
         try{
             if (layer <2){
                 for (int m = 0; m <4 ; m++){
-                    getRelatedTags(tree, numberOfTags, amountOfTweets, popTags[m], layer);
+                    getRelatedTags(baum, tree, numberOfTags, amountOfTweets, popTags[m], layer);
                 }    
             }
         }
          catch (Exception e){
              System.out.println("Exception in recursion: " + e);
         } 
-        return tree;
+        return baum;
     }
      
     
@@ -241,7 +245,20 @@ public class ConnectDB {
          
     }
      
-          
+    private static TreeNode recursiveSearch(String s, TreeNode node){
+    
+    if (node.getTag() == s)
+        return node;
+ 
+    List<TreeNode> children = node.getChildren(); 
+    TreeNode result = null;
+ 
+    for (int i = 0; result == null && i < children.size(); i++) {         
+        result = recursiveSearch(s, children.get(i));
+    }
+ 
+    return result;
+ }       
     
     
     /*public static String cleanText(String text) {

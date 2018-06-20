@@ -21,8 +21,8 @@ public class JavaTweet  {
         ConnectDB con = new ConnectDB();
         FindTweets findTweets = new FindTweets();
         String keyword = "#usa";
-        int MAX_QUERIES = 10;
-        final int TWEETS_PER_QUERY = 100;
+        int MAX_QUERIES = 1;
+        final int TWEETS_PER_QUERY = 10;
         List<String> Baum = new ArrayList();
         Baum.add(keyword.toLowerCase());
         TreeNode Baum2 = null;
@@ -48,7 +48,7 @@ public class JavaTweet  {
         }       
         
     }       
-    private static void recursivePrint(TreeNode node){    
+    static void recursivePrint(TreeNode node){    
         System.out.print (node.getTag()+ " "+ node.getValue()+ "  ");
         List<TreeNode> children = node.getChildren(); 
         //if (node.parent.getTag() != null){

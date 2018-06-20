@@ -129,7 +129,10 @@ public class ConnectDB {
      public static TreeNode getRelatedTags(TreeNode baum, List<String> tree, int numberOfTags,  int amountOfTweets, String tagToSearch, int layer){
         System.out.println("Layer " + Integer.toString(layer));
         System.out.println("We search " + tagToSearch+ "\n");
-        System.out.println(tree);
+        
+        JavaTweet jt = new JavaTweet();
+        JavaTweet.recursivePrint(baum);
+        //System.out.println(tree);
         
         String[] popTags = new String[4];
         int[] popValues = new int[4];
@@ -138,7 +141,6 @@ public class ConnectDB {
         ResultSet rs = null;
         tagToSearch = tagToSearch.toLowerCase();
         
-            
         
         try{
             rs = select(numberOfTags, tagToSearch);
@@ -152,8 +154,8 @@ public class ConnectDB {
                         
                         String tagLC = tag.toLowerCase();
                         //if (layer == 1) {System.out.println(tagLC);}
-                        //if (recursiveSearch(tagLC, baum)== null){
-                        if (!tree.contains(tagLC)) {
+                        if (recursiveSearch(tagLC, baum)== null){
+                        //if (!tree.contains(tagLC)) {
                         //if ((tag != null) && (!tag.toLowerCase().equals(key.toLowerCase()))){
                             if (tags.get(tagLC) == null){
                                 tags.put(tagLC, 1);
@@ -181,7 +183,9 @@ public class ConnectDB {
                     if (entry.getValue()==maxValueInMap) {
                         popTags[k] = entry.getKey();
                         popValues[k] =  entry.getValue();
-                        tree.add(entry.getKey());
+                        //tree.add(entry.getKey());
+                        
+                        //recursiveSearch (tagToSearch, baum).addChild(popTags[k], popValues[k]*100/count);
                         itr.remove();
                         break;
                     } 
@@ -191,6 +195,7 @@ public class ConnectDB {
             
             //TreeNode tn = recursiveSearch (tagToSearch, baum);             
             //tn.addChild(popTags[k], popValues[k]*100/count);
+            
             recursiveSearch (tagToSearch, baum).addChild(popTags[k], popValues[k]*100/count);
             }
             
@@ -247,17 +252,19 @@ public class ConnectDB {
      
     private static TreeNode recursiveSearch(String s, TreeNode node){
     
-    if (node.getTag() == s)
+    if (node.getTag() == null ? s == null : node.getTag().equals(s)) {
         return node;
- 
-    List<TreeNode> children = node.getChildren(); 
-    TreeNode result = null;
- 
-    for (int i = 0; result == null && i < children.size(); i++) {         
-        result = recursiveSearch(s, children.get(i));
     }
- 
-    return result;
+    else {   
+        List<TreeNode> children = node.getChildren(); 
+        TreeNode result = null;
+
+        for (int i = 0; result == null && i < children.size(); i++) {         
+            result = recursiveSearch(s, children.get(i));
+        }
+        return result;
+    }
+    
  }       
     
     

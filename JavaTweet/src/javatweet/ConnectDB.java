@@ -173,7 +173,7 @@ public class ConnectDB {
         } catch (Exception e){
             System.out.println("Exception in resultset: " + e);
         }
-                   
+        System.out.println("Count : " + count + "\n");           
         try{   
             for (int k = 0; k <4; k++){
                 Iterator<Map.Entry<String, Integer>> itr = tags.entrySet().iterator();

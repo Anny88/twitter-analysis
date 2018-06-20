@@ -20,9 +20,10 @@ public class JavaTweet  {
     public static void main(String[] args) throws TwitterException, IOException {  
         ConnectDB con = new ConnectDB();
         FindTweets findTweets = new FindTweets();
+        //NLP.init();
         String keyword = "#usa";
         int MAX_QUERIES = 1;
-        final int TWEETS_PER_QUERY = 100;
+        final int TWEETS_PER_QUERY = 2;
         List<String> Baum = new ArrayList();
         Baum.add(keyword.toLowerCase());
         TreeNode Baum2 = null;
@@ -30,15 +31,23 @@ public class JavaTweet  {
         //BaumTree.parent = null;
                
         try {
-            con.drop();
+            /*con.drop();
             con.createTable();
-            //List <String> tweets = findTweets.findByLoc(keyword, MAX_QUERIES,TWEETS_PER_QUERY);
+            
             findTweets.findByLoc(keyword, MAX_QUERIES,TWEETS_PER_QUERY);
             
-           //con.post(tweets);
+           
             Baum2 = con.getRelatedTags(BaumTree, Baum, 15,  MAX_QUERIES*TWEETS_PER_QUERY , keyword, 0);
             System.out.println ("BAUM : \n\n");
-            recursivePrint(Baum2);
+            
+            recursivePrint(Baum2);*/
+            
+            String s = NLP.preprocess("'What is happening right now to children and families in the #USA in #Torture: Stop separating children from their parents at the border, @realDonaldTrump #FamiliesBelongTogether. https://t.co/E9cKxrsymZ'");
+            System.out.println(s);
+            //List<String> list = FindTweets.getWords("@B#aggag a#kjdk@ #ij,iji#jij, i # #a, #@ #doy");
+            //System.out.print(list);
+           
+            
             /*for(String tweet : tweets) {
                 System.out.println(tweet + " : " + NLP.findSentiment(tweet));        
             }*/

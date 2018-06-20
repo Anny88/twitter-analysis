@@ -144,23 +144,46 @@ public class FindTweets {
     
     
   
-    
+    //extract tags from tweet
     public static List getWords(String tweet) throws Exception{
         
         String[] subStr;
+        char[] c;
         List <String> tags = new ArrayList();
-        String delimeter = " "; // Разделитель
+        
+        int hash = 0;
+        int end = 0;
+        boolean found = false; //checks if the beginning of hashtag was found
         
         if (tweet.length() > 0){
             try{
-                String tweet2 =  tweet.replaceAll("[^a-zA-Z0-9#@_]+"," ");
-                subStr = tweet2.split(delimeter); 
-                for(int i = 0; i < subStr.length; i++) { 
-                    char first = subStr[i].charAt(0);
-                    if (first == '#'){
-                        tags.add(subStr[i].toLowerCase());
+                String tweet2 =  tweet.replaceAll("[^a-zA-Z0-9#_]+"," ")+" ";
+                c = tweet2.toCharArray();
+                for(int i = 0; i < c.length; i++) { 
+                                                      
+                    if ((c[i]==' ' || c[i] == '#')&& found){
+                        found = false;
+                        end = i;
+                        if (hash < (end-1)){
+                            tags.add(tweet2.substring(hash, end).toLowerCase());
+                            //System.out.println(tweet2.substring(hash, end).toLowerCase());
+                        }
+                       // System.out.println(" 2 found =" + found + " hash = " + hash + " end= " + end);
                     }
+                    if (c[i] == '#' && !found){
+                        
+                        found = true;
+                        hash = i;
+                        //System.out.println(" 1 found =" + found + " hash = " + hash + " end= " + end);
+                        
+                    }    
+                    
+                 
                 }
+                
+                /*char first = subStr[i].charAt(0);
+                    if (first == '#'){
+                        tags.add(subStr[i].toLowerCase());*/
                 if (tags.isEmpty()) {
                     tags.add("notag");
                 }
@@ -181,10 +204,10 @@ public class FindTweets {
     
     
      public static String cleanText(String text) {
-        text = text.replace("\n", "\\n");
-        text = text.replace("\t", "\\t");
+        text = text.replace("\n", " ");
+        text = text.replace("\t", " ");
         text = text.replace("'", "\\'");
-        text = text.replaceAll("[^a-zA-Z0-9#@ ]+","");
+        //text = text.replaceAll("[^a-zA-Z0-9#@ ]+","");
         return text;
      }
     

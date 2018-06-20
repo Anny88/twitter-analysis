@@ -152,6 +152,7 @@ public class ConnectDB {
                         
                         String tagLC = tag.toLowerCase();
                         //if (layer == 1) {System.out.println(tagLC);}
+                        //if (recursiveSearch(tagLC, baum)== null){
                         if (!tree.contains(tagLC)) {
                         //if ((tag != null) && (!tag.toLowerCase().equals(key.toLowerCase()))){
                             if (tags.get(tagLC) == null){
@@ -171,8 +172,7 @@ public class ConnectDB {
             System.out.println("Exception in resultset: " + e);
         }
                    
-        try{    
-            
+        try{   
             for (int k = 0; k <4; k++){
                 Iterator<Map.Entry<String, Integer>> itr = tags.entrySet().iterator();
                 int maxValueInMap=(Collections.max(tags.values())); 

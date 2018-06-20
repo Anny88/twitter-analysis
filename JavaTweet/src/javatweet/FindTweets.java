@@ -27,6 +27,7 @@ public class FindTweets {
     public static List<String>  findByLoc(String keyword, int MAX_QUERIES, int TWEETS_PER_QUERY) throws TwitterException, IOException, Exception{
         
         Twitter twitter = connectToTwitter();    
+        NLP.init();
         
         ConnectDB conDB = new ConnectDB();
         Connection con = conDB.getConnection();
@@ -75,19 +76,25 @@ public class FindTweets {
 
                 for (Status s: result.getTweets()) {
                     totalTweets++;
+                    int sentimentScore;
                     String tweetReady = null;
+                    
                     if (maxID == -1 || s.getId() < maxID) {
                         maxID = s.getId();
                     }
                     if (!s.isRetweet()){
                        tweetReady = cleanText(s.getText());
+                       
+                       
                     }
                    
                     if (s.isRetweet()){
                        tweetReady = "RT " + cleanText(s.getRetweetedStatus().getText()); 
                     }
                     if (tweetReady != null){
-                        PreparedStatement posted = con.prepareStatement(insert(tweetReady));
+                        //identify sentiment of tweet 
+                        sentimentScore = NLP.findSentiment(tweetReady);
+                        PreparedStatement posted = con.prepareStatement(insert(tweetReady, sentimentScore));
                         posted.executeUpdate();
                     }
                     lines.add( cleanText(s.getText()));
@@ -106,8 +113,8 @@ public class FindTweets {
       
     }
     
-    public static String insert(String tweetReady) {
-       int score = 0;
+    public static String insert(String tweetReady, int score) {
+       //int score = 0;
        String insert = null, values = null;
        int size = 0;
         try{

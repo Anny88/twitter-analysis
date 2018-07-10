@@ -218,6 +218,24 @@ public class ConnectDB {
     }
      
     
+    public static ResultSet selectSentiments(){
+        ResultSet rs = null;
+        String selectScore = "select score from tweets";
+                
+        try {
+            Connection con = getConnection();
+            Statement stmt = con.createStatement();
+            rs = stmt.executeQuery(selectScore);            
+            return rs;
+            //stmt.close();
+           
+        } catch (Exception e){
+            System.out.println("Exception in select " + e);
+        }
+        return rs;
+         
+    } 
+     
     public static ResultSet select(int numberOfTags, String tagToSearch){
         ResultSet rs = null;
         String selectTags = "select tag1";

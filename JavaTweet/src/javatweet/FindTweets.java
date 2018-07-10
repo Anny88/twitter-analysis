@@ -32,9 +32,9 @@ public class FindTweets {
         ConnectDB conDB = new ConnectDB();
         Connection con = conDB.getConnection();
         
-        double lat = 51.509865;
-        double lon = -0.118092;
-        double res = 30;
+        double lat = 50.7162703;
+        double lon = -0.4649874;
+        double res = 50;
         String resUnit = "mi";  
         List<String> lines = new ArrayList<>();
         

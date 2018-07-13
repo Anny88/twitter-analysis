@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,6 +14,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -126,7 +129,8 @@ public class ConnectDB {
     
     
      
-     public static TreeNode getRelatedTags(TreeNode baum, List<String> tree, int numberOfTags,  int amountOfTweets, String tagToSearch, int layer){
+     public static TreeNode getRelatedTags(TreeNode baum, List<String> tree, int numberOfTags,  
+                                            String tagToSearch, boolean analyseSents, int layer){
         System.out.println("Layer " + Integer.toString(layer));
         System.out.println("We search " + tagToSearch+ "\n");
         
@@ -139,11 +143,12 @@ public class ConnectDB {
         int count = 0;
         HashMap <String, Integer> tags = new HashMap<String, Integer>();
         ResultSet rs = null;
-        tagToSearch = tagToSearch.toLowerCase();
-        
+        int [] Scores = {0,0,0,0,0,0,0};
+        tagToSearch = tagToSearch.toLowerCase();        
         
         try{
-            rs = select(numberOfTags, tagToSearch);
+            rs = selectTags(numberOfTags, tagToSearch);
+            
             System.out.println("Tags : ");
             while (rs.next()) {
                 count++;
@@ -173,7 +178,11 @@ public class ConnectDB {
         } catch (Exception e){
             System.out.println("Exception in resultset: " + e);
         }
-        System.out.println("Count : " + count + "\n");           
+        System.out.println("Count : " + count + "\n");        
+        
+        
+               
+        
         try{   
             for (int k = 0; k <4; k++){
                 Iterator<Map.Entry<String, Integer>> itr = tags.entrySet().iterator();
@@ -193,10 +202,16 @@ public class ConnectDB {
             tags.remove(popTags[k]);
             System.out.println("Tag " + (k+1) + ": " + popTags[k] + " with value " + (popValues[k]*100)/count+"%");
             
-            //TreeNode tn = recursiveSearch (tagToSearch, baum);             
-            //tn.addChild(popTags[k], popValues[k]*100/count);
-            
-            recursiveSearch (tagToSearch, baum).addChild(popTags[k], popValues[k]*100/count);
+            if (analyseSents){
+                try{
+                    Scores = selectSentScore(numberOfTags, popTags[k]);
+                }
+                catch (Exception e){
+                    System.out.println("Exception in Sentiment Scores Select: " + e);
+                }
+            }
+            //add a new Node with Hashtag, Value and Sentiment Score to the Tree
+            recursiveSearch (tagToSearch, baum).addChild(popTags[k], popValues[k]*100/count, Scores);
             }
             
         } catch (Exception e){
@@ -207,7 +222,7 @@ public class ConnectDB {
         try{
             if (layer <2){
                 for (int m = 0; m <4 ; m++){
-                    getRelatedTags(baum, tree, numberOfTags, amountOfTweets, popTags[m], layer);
+                    getRelatedTags(baum, tree, numberOfTags, popTags[m], analyseSents, layer);
                 }    
             }
         }
@@ -236,7 +251,7 @@ public class ConnectDB {
          
     } 
      
-    public static ResultSet select(int numberOfTags, String tagToSearch){
+    public static ResultSet selectTags(int numberOfTags, String tagToSearch){
         ResultSet rs = null;
         String selectTags = "select tag1";
                  
@@ -268,6 +283,51 @@ public class ConnectDB {
          
     }
      
+    public static int[] selectSentScore (int numberOfTags, String tagToSearch){
+        int[] result = {0,0,0,0,0,0,0};
+        result[0] = 0;
+        ResultSet rs = null;
+        String selectTags = "select score from tweets where tag1 =  '"+tagToSearch+"' ";
+        
+        if (tagToSearch != null){
+            
+            for (int i=1; i<numberOfTags; i++){
+                String num = Integer.toString(i+1);
+                selectTags += " OR tag" + num + " = '"+tagToSearch+"'";
+            }
+        }
+        try {
+            Connection con = getConnection();
+            Statement stmt = con.createStatement();
+            rs = stmt.executeQuery(selectTags);           
+           
+        } catch (Exception e){
+            System.out.println("Exception in select " + e);
+        }
+        
+        if (rs != null){
+            
+        }
+                
+        try {
+            while (rs.next()){
+                int score = rs.getInt(1);
+                if (score >= 0 && score <5){
+                    
+                    result[score]++;
+                    result[5]++; //count all scores
+                    result[6]+=score; //sum of all scores
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(JavaTweet.class.getName()).log(Level.SEVERE, null, ex);
+        }
+             
+        return result;
+    }
+    
+    
+    
     private static TreeNode recursiveSearch(String s, TreeNode node){
     
     if (node.getTag() == null ? s == null : node.getTag().equals(s)) {

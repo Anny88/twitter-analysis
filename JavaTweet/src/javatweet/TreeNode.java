@@ -19,12 +19,14 @@ public class TreeNode  {
     //private Datas datas;
     private String tag;
     private int value;
+    private int[] scores;
     TreeNode parent;
     List<TreeNode> children;
 
-    public TreeNode(String s, int v) {
+    public TreeNode(String s, int v, int[] score) {
         this.tag = s;
         this.value = v;
+        this.scores = score;
         this.children = new LinkedList<TreeNode>();
     }
 
@@ -34,15 +36,18 @@ public class TreeNode  {
     public String getValue(){
         return Integer.toString(value);
     }
+    public int[] getScores(){
+        return scores;
+    }
     public TreeNode getParent(){
         if (parent != null){
                 return parent;
         }
         else 
-        return new TreeNode ("noparent", 0);
+        return new TreeNode ("noparent", 0, null);
     }
-    public void addChild(String s, int v) {
-        TreeNode childNode = new TreeNode(s,v);
+    public void addChild(String s, int v, int[] scores) {
+        TreeNode childNode = new TreeNode(s,v,scores);
         
         childNode.parent = this;
         this.children.add(childNode);

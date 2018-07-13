@@ -32,17 +32,18 @@ public class JavaTweet  {
         ConnectDB con = new ConnectDB();
         FindTweets findTweets = new FindTweets();
         //NLP.init();
-        String keyword = "#fun";
-        int MAX_QUERIES = 1;
-        final int TWEETS_PER_QUERY = 10;
+        String keyword = "#TrumpProtest";
+        int MAX_QUERIES = 5;
+        final int TWEETS_PER_QUERY = 100;
         int Id = 44418; //London WOEID
         double lat = 50;
         double lon = 0;
         
         List<String> Baum = new ArrayList();
         Baum.add(keyword.toLowerCase());
+        int[] p = con.selectSentScore(15, keyword.toLowerCase()); //sentiment score for the whole set of tweets (root, keyword)
         TreeNode Baum2 = null;
-        TreeNode BaumTree = new TreeNode (keyword.toLowerCase(), 100);
+        TreeNode BaumTree = new TreeNode (keyword.toLowerCase(), 100, p);
         //BaumTree.parent = null;
                
         try {
@@ -52,7 +53,7 @@ public class JavaTweet  {
             findTweets.findByLoc(keyword, MAX_QUERIES,TWEETS_PER_QUERY);
             
            
-            Baum2 = con.getRelatedTags(BaumTree, Baum, 15,  MAX_QUERIES*TWEETS_PER_QUERY , keyword, 0);
+            Baum2 = con.getRelatedTags(BaumTree, Baum, 15, keyword, true, 0);
             System.out.println ("BAUM : \n\n");
             
             recursivePrint(Baum2);
@@ -62,7 +63,7 @@ public class JavaTweet  {
             
             if (woeid > 0){
                 System.out.println("\n\nTrending topics: \n");
-                getHotTopics(23424775);
+                getHotTopics(44418);
             }
             
             System.out.println("\n\nSentiments: \n");
@@ -70,6 +71,11 @@ public class JavaTweet  {
             showSents(con);
             
             
+            
+            System.out.println("\nSCORES:\n\n");
+            for (int g = 0; g <7; g++){
+                System.out.println("Count"+g+": "+p[g]);
+            }
             /*
             String f = "RT Happy 4th of July to all my USA #friends and #followers! ??? Which American fragrances will you be lighting today in #celebration? ?? #USA #4thofjuly #4th #July #redwhiteandblue #yankeecandle #yankeecandles #red #white #blue #godbless #godblessam… https://t.co/Afa8tr8py7 https://t.co/6LMSJCB7ot";
             
@@ -136,13 +142,21 @@ public class JavaTweet  {
         List<TreeNode> children = node.getChildren(); 
         //if (node.parent.getTag() != null){
         System.out.println ("parent: " + node.getParent().getTag());
-        //}
+        int[] scores = node.getScores();
+        for (int j = 0; j < 5; j++){
+            System.out.println ("   Score"+ j + ": " + scores[j]);
+        }    
+        System.out.print ("      Count: "+ scores[5] + " Sum: " + scores[6]);
+        System.out.println (" Average: "+ (float)scores[6]/scores[5]);
         TreeNode result = null;
         
         for (int i = 0; result == null && i < children.size(); i++) {         
             recursivePrint(children.get(i));
         }
     }
+    
+    
+    
     public  static void showSents (ConnectDB con){
         ResultSet sents = con.selectSentiments();
         int sum = 0;

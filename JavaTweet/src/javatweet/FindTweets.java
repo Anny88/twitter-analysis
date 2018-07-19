@@ -24,7 +24,7 @@ import twitter4j.conf.ConfigurationBuilder;
 
 public class FindTweets {
     
-    public static List<String>  findByLoc(String keyword, int MAX_QUERIES, int TWEETS_PER_QUERY) throws TwitterException, IOException, Exception{
+    public static List<String>  findByLoc(String keyword, int MAX_QUERIES, int TWEETS_PER_QUERY, double lat, double lon) throws TwitterException, IOException, Exception{
         
         Twitter twitter = connectToTwitter();    
         NLP.init();
@@ -32,8 +32,8 @@ public class FindTweets {
         ConnectDB conDB = new ConnectDB();
         Connection con = conDB.getConnection();
         
-        double lat = 50.7162703;
-        double lon = -0.4649874;
+        //double lat = -33.865143	;
+        //double lon = 151.209900;
         double res = 50;
         String resUnit = "mi";  
         List<String> lines = new ArrayList<>();
@@ -59,7 +59,9 @@ public class FindTweets {
                     Thread.sleep((searchTweetsRateLimit.getSecondsUntilReset()+2) * 1000l);
                 }
 
-                Query query = new Query(keyword).geoCode(new GeoLocation(lat,lon), res, resUnit); 
+                Query query = new Query(keyword);
+                        
+                query.geoCode(new GeoLocation(lat,lon), res, resUnit); 
                 query.count(TWEETS_PER_QUERY);
                 query.resultType(RECENT);
                 query.setLang("en");
@@ -83,11 +85,8 @@ public class FindTweets {
                         maxID = s.getId();
                     }
                     if (!s.isRetweet()){
-                       tweetReady = cleanText(s.getText());
-                       
-                       
-                    }
-                   
+                       tweetReady = cleanText(s.getText());                                     
+                    }                   
                     if (s.isRetweet()){
                        tweetReady = "RT " + cleanText(s.getRetweetedStatus().getText()); 
                     }
@@ -97,8 +96,7 @@ public class FindTweets {
                         PreparedStatement posted = con.prepareStatement(insert(tweetReady, sentimentScore));
                         posted.executeUpdate();
                     }
-                    lines.add( cleanText(s.getText()));
-                    //lines.add(s.getText());
+                    lines.add( cleanText(s.getText()));                    
                 }
                 searchTweetsRateLimit = result.getRateLimitStatus();
             }

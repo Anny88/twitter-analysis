@@ -129,7 +129,7 @@ public class ConnectDB {
     
     
      
-     public static TreeNode getRelatedTags(TreeNode baum, List<String> tree, int numberOfTags,  
+     public static TreeNode getRelatedTags(TreeNode baum, int numberOfTags,  
                                             String tagToSearch, boolean analyseSents, int layer){
         System.out.println("Layer " + Integer.toString(layer));
         System.out.println("We search " + tagToSearch+ "\n");
@@ -204,7 +204,7 @@ public class ConnectDB {
             
             if (analyseSents){
                 try{
-                    Scores = selectSentScore(numberOfTags, popTags[k]);
+                    Scores = selectSentScore(numberOfTags, popTags[k], false);
                 }
                 catch (Exception e){
                     System.out.println("Exception in Sentiment Scores Select: " + e);
@@ -220,9 +220,9 @@ public class ConnectDB {
         layer++;
         
         try{
-            if (layer <2){
+            if (layer <3){
                 for (int m = 0; m <4 ; m++){
-                    getRelatedTags(baum, tree, numberOfTags, popTags[m], analyseSents, layer);
+                    getRelatedTags(baum, numberOfTags, popTags[m], analyseSents, layer);
                 }    
             }
         }
@@ -283,46 +283,50 @@ public class ConnectDB {
          
     }
      
-    public static int[] selectSentScore (int numberOfTags, String tagToSearch){
+    public static int[] selectSentScore (int numberOfTags, String tagToSearch, boolean isRoot){
         int[] result = {0,0,0,0,0,0,0};
         result[0] = 0;
         ResultSet rs = null;
-        String selectTags = "select score from tweets where tag1 =  '"+tagToSearch+"' ";
-        
+        String selectTags = "";     
+             
         if (tagToSearch != null){
-            
-            for (int i=1; i<numberOfTags; i++){
-                String num = Integer.toString(i+1);
-                selectTags += " OR tag" + num + " = '"+tagToSearch+"'";
+            if (isRoot){
+                selectTags = "select score from tweets;";
             }
-        }
-        try {
-            Connection con = getConnection();
-            Statement stmt = con.createStatement();
-            rs = stmt.executeQuery(selectTags);           
-           
-        } catch (Exception e){
-            System.out.println("Exception in select " + e);
+            else{
+                selectTags = "select score from tweets where tag1 =  '"+tagToSearch+"' ";
+                for (int i=1; i<numberOfTags; i++){
+                    String num = Integer.toString(i+1);
+                    selectTags += " OR tag" + num + " = '"+tagToSearch+"'";
+                }
+            }
+            try {
+                Connection con = getConnection();
+                Statement stmt = con.createStatement();
+                rs = stmt.executeQuery(selectTags);           
+
+            } catch (Exception e){
+                System.out.println("Exception in select " + e);
+            }
         }
         
         if (rs != null){
             
-        }
-                
-        try {
-            while (rs.next()){
-                int score = rs.getInt(1);
-                if (score >= 0 && score <5){
-                    
-                    result[score]++;
-                    result[5]++; //count all scores
-                    result[6]+=score; //sum of all scores
+                        
+            try {
+                while (rs.next()){
+                    int score = rs.getInt(1);
+                    if (score >= 0 && score <5){
+
+                        result[score]++;
+                        result[5]++; //count all scores
+                        result[6]+=score; //sum of all scores
+                    }
                 }
+            } catch (SQLException ex) {
+                Logger.getLogger(JavaTweet.class.getName()).log(Level.SEVERE, null, ex);
             }
-        } catch (SQLException ex) {
-            Logger.getLogger(JavaTweet.class.getName()).log(Level.SEVERE, null, ex);
-        }
-             
+        }    
         return result;
     }
     
